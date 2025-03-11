@@ -24,7 +24,25 @@ app.post('/location', async (req, res) => {
     res.send('Location saved');
   }
 });
-
+app.get('/', (req, res) => {
+    res.send(`
+      <html>
+        <body>
+          <h1>Car Tracker</h1>
+          <div id="map" style="height: 400px;"></div>
+          <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+          <script>
+            var map = L.map('map').setView([40.7128, -74.0060], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '© OpenStreetMap'
+            }).addTo(map);
+            var marker = L.marker([40.7128, -74.0060]).addTo(map);
+          </script>
+        </body>
+      </html>
+    `);
+  });
 // Start server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:3000`);

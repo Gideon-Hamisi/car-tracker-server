@@ -10,9 +10,9 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 app.use(express.json());
 
 app.post('/location', async (req, res) => {
-  console.log('Received data:', req.body); // Log incoming data
-  const latitude = parseFloat(req.body.lat); // Traccar uses "lat"
-  const longitude = parseFloat(req.body.lon); // Traccar uses "lon"
+  console.log('Full request:', { body: req.body, query: req.query, headers: req.headers });
+  const latitude = parseFloat(req.body.lat || req.query.lat);
+  const longitude = parseFloat(req.body.lon || req.query.lon);
   if (!latitude || !longitude) {
     console.error('Invalid data:', { latitude, longitude });
     return res.status(400).send('Invalid latitude or longitude');

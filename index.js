@@ -3,17 +3,20 @@ const { createClient } = require('@supabase/supabase-js');
 const app = express();
 const port = 3000;
 
-// Supabase setup (your specific URL and Anon Key)
 const supabaseUrl = 'https://fqxuqnhvzawlhualthii.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxeHVxbmh2emF3bGh1YWx0aGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE2MTk1MjMsImV4cCI6MjA1NzE5NTUyM30._vycNVW7J96Y-Bh_HxiOrpgHl1O6M4U-tEjW2wwy404';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Middleware to parse JSON from Traccar Client
 app.use(express.json());
 
-// Endpoint to receive GPS data from Traccar Client
 app.post('/location', async (req, res) => {
-  const { latitude, longitude } = req.body;
+  console.log('Received data:', req.body); // Log incoming data
+  const latitude = parseFloat(req.body.lat); // Traccar uses "lat"
+  const longitude = parseFloat(req.body.lon); // Traccar uses "lon"
+  if (!latitude || !longitude) {
+    console.error('Invalid data:', { latitude, longitude });
+    return res.status(400).send('Invalid latitude or longitude');
+  }
   const { error } = await supabase
     .from('locations')
     .insert([{ latitude, longitude }]);
@@ -25,14 +28,13 @@ app.post('/location', async (req, res) => {
   }
 });
 
-// Dynamic map display fetching latest location from Supabase
 app.get('/', async (req, res) => {
   const { data, error } = await supabase
     .from('locations')
     .select('latitude, longitude')
     .order('timestamp', { ascending: false })
     .limit(1);
-  const lat = error || !data[0] ? 40.7128 : data[0].latitude; // Default to NYC if no data
+  const lat = error || !data[0] ? 40.7128 : data[0].latitude;
   const lon = error || !data[0] ? -74.0060 : data[0].longitude;
   res.send(`
     <html>
@@ -47,14 +49,13 @@ app.get('/', async (req, res) => {
             attribution: '© OpenStreetMap'
           }).addTo(map);
           var marker = L.marker([${lat}, ${lon}]).addTo(map);
-          setInterval(() => location.reload(), 10000); // Refresh every 10s
+          setInterval(() => location.reload(), 10000);
         </script>
       </body>
     </html>
   `);
 });
 
-// Start server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
